@@ -6,9 +6,9 @@ router.get('/', async function (req, res, next) {
     let sql = `
         SELECT
             count(*) as count,
-            DATE_FORMAT(CURDATE(), \'%Y-%m-%d\') as date
+            max(join_date) as date
         FROM DiscordUsers 
-        GROUP BY DATE_FORMAT(CURDATE(), \'%m-%d-%Y\')
+        GROUP BY DATE_FORMAT(join_date, \'%m-%d-%Y\')
     `;
 
     try{
