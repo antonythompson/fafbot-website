@@ -8,7 +8,7 @@ router.get('/', async function (req, res, next) {
             count(*) as count,
             max(join_date) as date
         FROM DiscordUsers 
-        GROUP BY DATE_FORMAT(join_date, \'%m-%Y\')
+        GROUP BY DATE_FORMAT(join_date, \'%U-%Y\')
     `;
 
     try{
