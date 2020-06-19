@@ -1,6 +1,7 @@
 
 import axios from 'axios';
 const Highcharts = require('highcharts');
+const moment = require('moment')
 // Load module after Highcharts is loaded
 require('highcharts/modules/exporting')(Highcharts);
 
@@ -10,20 +11,51 @@ export default function(){
 async function home(){
     try{
         let response = await axios.get('/joins')
+        let data = response.data.data;
+
+        let date = moment(data[0].date)
+        let now = moment();
+        let i = 0; //failsafe for infinite while
+        let days = [];
+        let months = [];
+        let weeks = [];
+        let datesHashMap = {};
+        data.forEach(item => {
+            datesHashMap[item.date] = item.count;
+        })
+        while (date.isSameOrBefore(now) && i < 5000) {
+            i++;
+            let date_string = date.format('YYYY-MM-DD');
+            let value = datesHashMap[date_string] || null;
+            if (value !== null) {
+                days.push([date.format('X'),  value])
+            }
+            date.add(1, 'd');
+        }
+        response.data.data.map(row => {
+            return row.count
+        })
+
+
         Highcharts.chart('chart', {
 
             title: {
                 text: 'ANZ faf join rate'
             },
-            yAxis: {
-                title: {
-                    text: 'Number'
+
+            xAxis: {
+                type: 'datetime',
+                dateTimeLabelFormats: {
+                    day: 'day %e. %b',
+                    week: 'week %e. %b',
+                    month: 'month %b \'%y',
+                    year: '%Y'
                 }
             },
 
-            xAxis: {
-                accessibility: {
-                    rangeDescription: 'Day'
+            yAxis: {
+                title: {
+                    text: 'Number'
                 }
             },
 
@@ -32,21 +64,9 @@ async function home(){
                 align: 'right',
                 verticalAlign: 'middle'
             },
-
-            plotOptions: {
-                series: {
-                    label: {
-                        connectorAllowed: false
-                    },
-                    pointStart: 2010
-                }
-            },
-
             series: [{
-                name: 'Joins',
-                data: response.data.data.map(row => {
-                    return row.count
-                })
+                name: 'Joins per day',
+                data: days
             }],
 
             responsive: {
