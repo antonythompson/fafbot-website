@@ -27,25 +27,28 @@ async function home(){
         let week_count = 0;
 
         let total = 0;
+        let after = moment('2018-01-01')
         data.forEach((item, i)=> {
             total += item.count
             // datesHashMap[item.date] = item.count;
             // let date_string = date.format('YYYY-MM-DD');
             let date = moment(item.date);
-            let week = date.clone().endOf('week').format('x');
-            let month = date.clone().endOf('month').format('x');
-            if (!weeksHashMap[week]) {
-                weeksHashMap[week] = item.count;
-            } else {
-                weeksHashMap[week] += item.count;
+            if (date.isAfter(after)) {
+                let week = date.clone().endOf('week').format('x');
+                let month = date.clone().endOf('month').format('x');
+                if (!weeksHashMap[week]) {
+                    weeksHashMap[week] = item.count;
+                } else {
+                    weeksHashMap[week] += item.count;
+                }
+                if (!monthsHashMap[month]) {
+                    monthsHashMap[month] = item.count;
+                } else {
+                    monthsHashMap[month] += item.count;
+                }
+                days.push([parseInt(date.format('x')),  item.count])
+                population.push([parseInt(date.format('x')), total])
             }
-            if (!monthsHashMap[month]) {
-                monthsHashMap[month] = item.count;
-            } else {
-                monthsHashMap[month] += item.count;
-            }
-            days.push([parseInt(date.format('x')),  item.count])
-            population.push([parseInt(date.format('x')), total])
         })
         _.each(weeksHashMap, (count, date) => {
             weeks.push([parseInt(date), count])
