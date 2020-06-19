@@ -1,9 +1,13 @@
 var express = require('express');
 var router = express.Router();
-
-/* GET home page. */
+const joinRoutes = require('./joins')
+//home
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'FAF Bot' });
 });
 
-module.exports = router;
+
+module.exports = function(app){
+  app.use('/joins', joinRoutes);
+  return router;
+};
