@@ -2,6 +2,7 @@
 import axios from 'axios';
 const Highcharts = require('highcharts');
 const moment = require('moment')
+const _ = require('underscore')
 // Load module after Highcharts is loaded
 require('highcharts/modules/exporting')(Highcharts);
 
@@ -13,28 +14,60 @@ async function home(){
         let response = await axios.get('/joins')
         let data = response.data.data;
 
-        let date = moment(data[0].date)
+        // let date = moment(data[0].date).seconds(0).minutes(0).milliseconds(0)
         let now = moment();
-        let i = 0; //failsafe for infinite while
+        let population = [];
         let days = [];
         let months = [];
         let weeks = [];
         let datesHashMap = {};
-        data.forEach(item => {
-            datesHashMap[item.date] = item.count;
-        })
-        while (date.isSameOrBefore(now) && i < 5000) {
-            i++;
-            let date_string = date.format('YYYY-MM-DD');
-            let value = datesHashMap[date_string] || null;
-            if (value !== null) {
-                days.push([date.format('X'),  value])
+        let weeksHashMap = {};
+        let monthsHashMap = {};
+        console.log(data);
+        let week_count = 0;
+
+        let total = 0;
+        data.forEach((item, i)=> {
+            total += item.count
+            // datesHashMap[item.date] = item.count;
+            // let date_string = date.format('YYYY-MM-DD');
+            let date = moment(item.date);
+            let week = date.clone().endOf('week').format('x');
+            let month = date.clone().endOf('month').format('x');
+            if (!weeksHashMap[week]) {
+                weeksHashMap[week] = item.count;
+            } else {
+                weeksHashMap[week] += item.count;
             }
-            date.add(1, 'd');
-        }
-        response.data.data.map(row => {
-            return row.count
+            if (!monthsHashMap[month]) {
+                monthsHashMap[month] = item.count;
+            } else {
+                monthsHashMap[month] += item.count;
+            }
+            days.push([parseInt(date.format('x')),  item.count])
+            population.push([parseInt(date.format('x')), total])
         })
+        _.each(weeksHashMap, (count, date) => {
+            weeks.push([parseInt(date), count])
+        })
+        _.each(monthsHashMap, (count, date) => {
+            months.push([parseInt(date), count])
+        })
+        console.log({days, weeks, months})
+        // console.log({datesHashMap, date}, Date.UTC(date.format('YYYY'), date.format('MM'), date.format('DD')), );
+        // let i = 0; //failsafe for infinite while
+        // while (date.isSameOrBefore(now) && i < 5000) {
+        //     i++;
+        //     let date_string = date.format('YYYY-MM-DD');
+        //     let value = datesHashMap[date_string] || null;
+        //     if (value !== null) {
+        //         days.push([parseInt(date.format('x')),  value])
+        //     }
+        //     date.add(1, 'd');
+        // }
+        // response.data.data.map(row => {
+        //     return row.count
+        // })
 
 
         Highcharts.chart('chart', {
@@ -46,9 +79,9 @@ async function home(){
             xAxis: {
                 type: 'datetime',
                 dateTimeLabelFormats: {
-                    day: 'day %e. %b',
-                    week: 'week %e. %b',
-                    month: 'month %b \'%y',
+                    day: '%e. %b',
+                    week: '%e. %b',
+                    month: '%b \'%y',
                     year: '%Y'
                 }
             },
@@ -65,8 +98,17 @@ async function home(){
                 verticalAlign: 'middle'
             },
             series: [{
-                name: 'Joins per day',
+                name: 'per Day',
                 data: days
+            },{
+                name: 'per Week',
+                data: weeks
+            },{
+                name: 'per Month',
+                data: months
+            },{
+                name: 'Population',
+                data: population
             }],
 
             responsive: {
@@ -86,6 +128,6 @@ async function home(){
 
         });
     } catch (e) {
-
+        console.log(e);
     }
 }
