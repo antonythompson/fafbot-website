@@ -2,6 +2,11 @@ extends layout
 
 block content
   h1= title
+  label(
+    for='guilds'
+  ) Guilds
+  select#guilds
+    option Loading guilds...
   div#chart
 
   script(src='/javascripts/app.js')

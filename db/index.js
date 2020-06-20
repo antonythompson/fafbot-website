@@ -1,7 +1,7 @@
 
 var mysql = require('mysql')
 
-function query(sql){
+function query(sql, fields){
     return new Promise(function(resolve, reject){
         let connection = mysql.createConnection({
             host: process.env.DB_HOST,
@@ -10,7 +10,11 @@ function query(sql){
             database: process.env.DB_DATABASE
         })
         connection.connect()
-        connection.query(sql, function (err, rows, fields) {
+        let params = [sql];
+        if (fields) {
+            params.push(fields)
+        }
+        params.push(function (err, rows, fields) {
             console.log({err, rows, fields});
             if (err){
                 reject(err)
@@ -19,6 +23,7 @@ function query(sql){
             }
             connection.end()
         })
+        connection.query(...params)
 
     });
 }
